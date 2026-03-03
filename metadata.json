@@ -1,0 +1,5 @@
+{
+  "name": "Dual N-back Trainer",
+  "description": "A minimalist cognitive training app to improve working memory and fluid intelligence through Dual N-back exercises.",
+  "requestFramePermissions": []
+}
