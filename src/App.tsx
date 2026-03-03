@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Play, RotateCcw, ChevronLeft, Info, BarChart2 } from 'lucide-react';
+import { Play, RotateCcw, ChevronLeft, Info, BarChart2, Volume2, VolumeX } from 'lucide-react';
 import { Trial, UserResponse, SessionStats } from './types';
 
 const GRID_SIZE = 3;
@@ -22,6 +22,7 @@ export default function App() {
   const [userResponses, setUserResponses] = useState<UserResponse[]>([]);
   const [history, setHistory] = useState<SessionStats[]>([]);
   const [activeVoice, setActiveVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
   
   // Current trial state for UI
   const [activeGridIndex, setActiveGridIndex] = useState<number | null>(null);
@@ -64,12 +65,12 @@ export default function App() {
   }, []);
 
   const speak = useCallback((text: string) => {
-    if (!activeVoice) return;
+    if (!activeVoice || isMuted) return;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = activeVoice;
     utterance.rate = 1.0;
     window.speechSynthesis.speak(utterance);
-  }, [activeVoice]);
+  }, [activeVoice, isMuted]);
 
   const generateTrials = (level: number) => {
     const newTrials: Trial[] = Array(TOTAL_TRIALS).fill(null).map(() => ({ position: -1, letter: '' }));
@@ -121,6 +122,12 @@ export default function App() {
   };
 
   const startGame = () => {
+    // Some browsers require a user gesture to enable speech synthesis
+    if (!isMuted) {
+      const utterance = new SpeechSynthesisUtterance("");
+      window.speechSynthesis.speak(utterance);
+    }
+    
     const newTrials = generateTrials(nLevel);
     setTrials(newTrials);
     setCurrentIndex(-1);
@@ -264,7 +271,7 @@ export default function App() {
           </header>
 
           <div className="py-8 flex flex-col items-center">
-            <div className="flex items-center gap-8 mb-2">
+            <div className="flex items-center gap-8 mb-4">
               <button 
                 onClick={() => setNLevel(prev => Math.max(1, prev - 1))}
                 className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-2xl font-bold hover:bg-gray-200 active:scale-90 transition-all"
@@ -279,7 +286,28 @@ export default function App() {
                 +
               </button>
             </div>
-            <div className="text-xs uppercase tracking-widest text-gray-400 font-semibold">当前 N 级</div>
+            <div className="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-6">当前 N 级</div>
+
+            <button
+              onClick={() => {
+                const nextMuted = !isMuted;
+                setIsMuted(nextMuted);
+                // Some browsers require a user gesture to enable speech synthesis
+                if (!nextMuted) {
+                  const utterance = new SpeechSynthesisUtterance("Sound enabled");
+                  if (activeVoice) utterance.voice = activeVoice;
+                  window.speechSynthesis.speak(utterance);
+                }
+              }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-medium transition-all active:scale-95 ${
+                isMuted 
+                  ? 'bg-rose-50 text-rose-600 border border-rose-100 animate-pulse' 
+                  : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+              }`}
+            >
+              {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              {isMuted ? '声音已禁用 (点击开启)' : '声音已开启'}
+            </button>
           </div>
 
           <button
