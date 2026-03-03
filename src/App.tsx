@@ -44,6 +44,22 @@ export default function App() {
     }
   }, []);
 
+  // Keep-alive for Speech Synthesis (Chrome bug workaround)
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    
+    const keepAlive = setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      } else {
+        window.speechSynthesis.resume();
+      }
+    }, 10000);
+
+    return () => clearInterval(keepAlive);
+  }, [gameState]);
+
   // Initialize Speech Synthesis
   useEffect(() => {
     const loadVoices = () => {
@@ -65,10 +81,27 @@ export default function App() {
   }, []);
 
   const speak = useCallback((text: string) => {
-    if (!activeVoice || isMuted) return;
+    if (isMuted) return;
+    
+    // Cancel any pending speech to clear the queue
+    window.speechSynthesis.cancel();
+    // Resume in case it's paused
+    window.speechSynthesis.resume();
+    
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = activeVoice;
-    utterance.rate = 1.0;
+    if (activeVoice) {
+      utterance.voice = activeVoice;
+    }
+    utterance.rate = 1.1; // Slightly faster for better rhythm
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    utterance.lang = 'en-US'; // Explicitly set language
+    
+    // Error handling
+    utterance.onerror = (event) => {
+      console.error('SpeechSynthesisUtterance error', event);
+    };
+
     window.speechSynthesis.speak(utterance);
   }, [activeVoice, isMuted]);
 
@@ -124,6 +157,8 @@ export default function App() {
   const startGame = () => {
     // Some browsers require a user gesture to enable speech synthesis
     if (!isMuted) {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
       const utterance = new SpeechSynthesisUtterance("");
       window.speechSynthesis.speak(utterance);
     }
@@ -145,7 +180,10 @@ export default function App() {
 
     setCurrentIndex(index);
     setActiveGridIndex(currentTrials[index].position);
-    speak(currentTrials[index].letter);
+    // Small delay to ensure state update doesn't interfere with speech synthesis
+    setTimeout(() => {
+      speak(currentTrials[index].letter);
+    }, 50);
     setHasRespondedPosition(false);
     setHasRespondedLetter(false);
 
