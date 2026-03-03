@@ -387,9 +387,9 @@ export default function App() {
 
   if (gameState === 'playing') {
     return (
-      <div className="min-h-screen bg-white text-gray-900 flex flex-col font-sans select-none touch-none">
+      <div className="h-screen h-[100dvh] bg-white text-gray-900 flex flex-col font-sans select-none touch-none overflow-hidden">
         {/* Header with Return Button */}
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-2 shrink-0">
           <button 
             onClick={resetGame}
             className="p-2 -ml-2 text-gray-400 hover:text-gray-600 active:scale-90 transition-all flex items-center gap-1"
@@ -397,62 +397,64 @@ export default function App() {
             <ChevronLeft size={20} />
             <span className="text-sm font-medium">返回</span>
           </button>
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             {nLevel}-BACK 训练中
           </div>
           <div className="w-10"></div> {/* Spacer for symmetry */}
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full h-1 bg-gray-100">
+        <div className="w-full h-1 bg-gray-100 shrink-0">
           <div 
             className="h-full bg-gray-400 transition-all duration-300" 
             style={{ width: `${((currentIndex + 1) / TOTAL_TRIALS) * 100}%` }}
           />
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-between py-8 px-4">
-          <div className="text-center">
-            <div className="text-sm font-mono text-gray-400">
+        <div className="flex-1 flex flex-col items-center justify-between py-2 px-4 overflow-hidden">
+          <div className="text-center shrink-0">
+            <div className="text-[10px] font-mono text-gray-400">
               {currentIndex + 1} / {TOTAL_TRIALS}
             </div>
           </div>
 
-          {/* Grid */}
-          <div className="grid grid-cols-3 gap-3 w-full max-w-[320px] aspect-square">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div
-                key={i}
-                className={`rounded-xl transition-colors duration-200 ${
-                  activeGridIndex === i ? 'bg-gray-600' : 'bg-gray-100'
-                }`}
-              />
-            ))}
+          {/* Grid Area - Flexible but constrained */}
+          <div className="flex-1 flex items-center justify-center w-full min-h-0">
+            <div className="grid grid-cols-3 gap-2 w-full max-w-[260px] sm:max-w-[320px] aspect-square">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`rounded-xl transition-colors duration-200 ${
+                    activeGridIndex === i ? 'bg-gray-600' : 'bg-gray-100'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="w-full max-w-md grid grid-cols-2 gap-4 h-48 sm:h-32">
+          {/* Controls Area - Fixed height at bottom */}
+          <div className="w-full max-w-md grid grid-cols-2 gap-3 h-24 sm:h-32 shrink-0 mb-2">
             <button
               onPointerDown={() => handleResponse('position')}
-              className={`rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${
+              className={`rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
                 hasRespondedPosition 
                   ? 'bg-gray-200 text-gray-400' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <span className="text-lg font-bold">位置匹配</span>
-              <span className="text-[10px] uppercase tracking-tighter opacity-50">Keyboard: F</span>
+              <span className="text-sm font-bold">位置匹配</span>
+              <span className="text-[8px] uppercase tracking-tighter opacity-50">Keyboard: F</span>
             </button>
             <button
               onPointerDown={() => handleResponse('letter')}
-              className={`rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${
+              className={`rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
                 hasRespondedLetter 
                   ? 'bg-gray-200 text-gray-400' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <span className="text-lg font-bold">声音匹配</span>
-              <span className="text-[10px] uppercase tracking-tighter opacity-50">Keyboard: J</span>
+              <span className="text-sm font-bold">声音匹配</span>
+              <span className="text-[8px] uppercase tracking-tighter opacity-50">Keyboard: J</span>
             </button>
           </div>
         </div>
